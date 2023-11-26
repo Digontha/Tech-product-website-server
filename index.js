@@ -38,6 +38,7 @@ async function run() {
         const trandingCollection = client.db("techDB").collection("trandingProducts");
         const usersCollection = client.db("techDB").collection("usersProducts");
         const allCollection = client.db("techDB").collection("AllProducts");
+        const reviewCollection = client.db("techDB").collection("review");
 
         app.get("/featuredProduct", async (req, res) => {
             const result = await featuredCollection.find().toArray();
@@ -93,6 +94,28 @@ async function run() {
             console.log(result);
             res.send(result);
         });
+
+        app.post("/review", async (req, res) => {
+            const data = req.body
+            const result = await reviewCollection.insertOne(data)
+            res.send(result)
+        });
+
+        // app.get("/review", async (req, res) => {
+        //     const id = req.query.id;
+        //     const query = {productId:id}
+        //     const result = await reviewCollection.find(query).toArray();
+        //     res.send(result)
+        // })
+        app.get("/review", async (req, res) => {
+            const id = req.query.id;
+            let query = {}
+            if(id){
+                query = {productId:id}
+            }
+            const result = await reviewCollection.find(query).toArray();
+            res.send(result)
+        })
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
