@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 })
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jp082z4.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -35,12 +35,64 @@ async function run() {
         await client.db("admin").command({ ping: 1 });
 
         const featuredCollection = client.db("techDB").collection("featuredProduct");
+        const trandingCollection = client.db("techDB").collection("trandingProducts");
+        const usersCollection = client.db("techDB").collection("usersProducts");
+        const allCollection = client.db("techDB").collection("AllProducts");
 
         app.get("/featuredProduct", async (req, res) => {
             const result = await featuredCollection.find().toArray();
             res.send(result)
         })
 
+        app.get("/featuredProduct/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = {_id : new ObjectId(id)}
+            const result = await featuredCollection.findOne(query);
+            console.log(result);
+            res.send(result);
+        });
+
+        app.get("/trandingProduct", async (req, res) => {
+            const result = await trandingCollection.find().toArray();
+            res.send(result)
+        })
+
+        app.get("/trandingProduct/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = {_id : new ObjectId(id)}
+            const result = await trandingCollection.findOne(query);
+            console.log(result);
+            res.send(result);
+        });
+
+        app.post("/users", async (req, res) => {
+            const data = req.body
+            const result = await usersCollection.insertOne(data)
+            res.send(result);
+        });
+
+        app.get("/users", async (req, res) => {
+            const email = req.query.email
+            const query = {email: email}
+            const result = await usersCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        app.get("/allProduct", async (req, res) => {
+            const result = await allCollection.find().toArray();
+            res.send(result)
+        })
+
+        app.get("/AllProduct/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = {_id : new ObjectId(id)}
+            const result = await allCollection.findOne(query);
+            console.log(result);
+            res.send(result);
+        });
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
