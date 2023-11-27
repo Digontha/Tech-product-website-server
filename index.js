@@ -92,6 +92,12 @@ async function run() {
             res.send(result)
         });
 
+        app.post("/allProduct", async (req, res) => {
+            const data = req.body
+            const result = await allCollection.insertOne(data)
+            res.send(result)
+        })
+
         app.get("/allProduct", async (req, res) => {
             const result = await allCollection.find().toArray();
             res.send(result)
@@ -103,6 +109,8 @@ async function run() {
             const result = await allCollection.findOne(query);       
             res.send(result);
         });
+
+        
 
         app.post("/review", async (req, res) => {
             const data = req.body
