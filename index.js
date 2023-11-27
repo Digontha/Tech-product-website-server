@@ -33,8 +33,8 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
-        await client.db("admin").command({ ping: 1 });
+        // await client.connect();
+        // await client.db("admin").command({ ping: 1 });
 
         const featuredCollection = client.db("techDB").collection("featuredProduct");
         const trandingCollection = client.db("techDB").collection("trandingProducts");
@@ -99,18 +99,26 @@ async function run() {
         })
 
         app.get("/allProduct", async (req, res) => {
-            const result = await allCollection.find().toArray();
+            const page = parseInt(req.query.page)
+            const size = parseInt(req.query.size)
+            console.log(page, size);
+            const result = await allCollection.find().skip(page * size).limit(size).toArray();
             res.send(result)
         })
+
+        app.get("/allProductCount", async (req, res) => {
+            const count = await allCollection.estimatedDocumentCount();
+            res.send({ count });
+        });
 
         app.get("/AllProduct/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
-            const result = await allCollection.findOne(query);       
+            const result = await allCollection.findOne(query);
             res.send(result);
         });
 
-        
+
 
         app.post("/review", async (req, res) => {
             const data = req.body
