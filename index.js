@@ -4,6 +4,8 @@ const app = express()
 require('dotenv').config()
 const port = process.env.PORT || 5000;
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 var cookieParser = require('cookie-parser')
 
 app.use(express.json());
@@ -47,10 +49,8 @@ async function run() {
 
         app.get("/featuredProduct/:id", async (req, res) => {
             const id = req.params.id;
-            console.log(id);
-            const query = {_id : new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await featuredCollection.findOne(query);
-            console.log(result);
             res.send(result);
         });
 
@@ -61,10 +61,8 @@ async function run() {
 
         app.get("/trandingProduct/:id", async (req, res) => {
             const id = req.params.id;
-            console.log(id);
-            const query = {_id : new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await trandingCollection.findOne(query);
-            console.log(result);
             res.send(result);
         });
 
@@ -76,10 +74,23 @@ async function run() {
 
         app.get("/users", async (req, res) => {
             const email = req.query.email
-            const query = {email: email}
+            const query = { email: email }
             const result = await usersCollection.find(query).toArray();
             res.send(result)
         })
+
+        app.put("/users", async (req, res) => {
+            const email = req.query.email
+            const query = { email: email }
+
+            const updatedData = {
+                $set: {
+                    subscribe: true
+                }
+            }
+            const result = await usersCollection.updateOne(query, updatedData)
+            res.send(result)
+        });
 
         app.get("/allProduct", async (req, res) => {
             const result = await allCollection.find().toArray();
@@ -88,10 +99,8 @@ async function run() {
 
         app.get("/AllProduct/:id", async (req, res) => {
             const id = req.params.id;
-            console.log(id);
-            const query = {_id : new ObjectId(id)}
-            const result = await allCollection.findOne(query);
-            console.log(result);
+            const query = { _id: new ObjectId(id) }
+            const result = await allCollection.findOne(query);       
             res.send(result);
         });
 
@@ -101,21 +110,30 @@ async function run() {
             res.send(result)
         });
 
-        // app.get("/review", async (req, res) => {
-        //     const id = req.query.id;
-        //     const query = {productId:id}
-        //     const result = await reviewCollection.find(query).toArray();
-        //     res.send(result)
-        // })
         app.get("/review", async (req, res) => {
             const id = req.query.id;
             let query = {}
-            if(id){
-                query = {productId:id}
+            if (id) {
+                query = { productId: id }
             }
             const result = await reviewCollection.find(query).toArray();
             res.send(result)
         })
+
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        });
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
