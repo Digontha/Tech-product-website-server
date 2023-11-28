@@ -101,8 +101,9 @@ async function run() {
         app.get("/allProduct", async (req, res) => {
             const page = parseInt(req.query.page)
             const size = parseInt(req.query.size)
-            console.log(page, size);
-            const result = await allCollection.find().skip(page * size).limit(size).toArray();
+            const tag = req.query.tag;
+            const query = {tag:{$regex: tag , $options:"i"}}; 
+            const result = await allCollection.find(query).skip(page * size).limit(size).toArray();
             res.send(result)
         })
 
