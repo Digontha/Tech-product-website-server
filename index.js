@@ -69,13 +69,22 @@ async function run() {
 
         app.post("/users", async (req, res) => {
             const data = req.body
+            const query = { email: data.email }
+            const existingUser = await usersCollection.findOne(query);
+            if (existingUser) {
+              return res.send({ message: 'user already exists', insertedId: null })
+            }
             const result = await usersCollection.insertOne(data)
             res.send(result);
         });
 
         app.get("/users", async (req, res) => {
             const email = req.query.email
-            const query = { email: email }
+            
+            let query = {}
+            if(email){
+                query={ email: email }
+            }
             const result = await usersCollection.find(query).toArray();
             res.send(result)
         })
@@ -98,6 +107,41 @@ async function run() {
             const result = await myCollection.insertOne(data)
             res.send(result)
         })
+
+        app.get("/myProduct", async (req, res) => {
+            const email = req.query.email
+            let query = {}
+            if(email){
+                query={ email: email }
+            }
+            const result = await myCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        app.get("/myProduct/:id", async (req, res) => {
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await myCollection.findOne(query)
+            res.send(result)
+        });
+
+        app.put("/myProduct/:id", async (req, res) =>{
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)}
+            const options = { upsert: true };
+            const data = req.body;
+            const UpdateResult = {
+              $set:{
+                product_name:data?.product_name,
+                image:data?.image,
+                tag:data?.tag,
+                upvote:data?.upvote,
+                product_description:data?.product_description,
+              }
+            }
+            const result = await myCollection.updateOne(filter,UpdateResult,options)
+            res.send(result);
+        });
 
         app.get("/allProduct", async (req, res) => {
             const page = parseInt(req.query.page)
