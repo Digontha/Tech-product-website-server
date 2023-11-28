@@ -30,6 +30,8 @@ const client = new MongoClient(uri, {
     }
 });
 
+
+
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
@@ -72,7 +74,7 @@ async function run() {
             const query = { email: data.email }
             const existingUser = await usersCollection.findOne(query);
             if (existingUser) {
-              return res.send({ message: 'user already exists', insertedId: null })
+                return res.send({ message: 'user already exists', insertedId: null })
             }
             const result = await usersCollection.insertOne(data)
             res.send(result);
@@ -80,10 +82,10 @@ async function run() {
 
         app.get("/users", async (req, res) => {
             const email = req.query.email
-            
+
             let query = {}
-            if(email){
-                query={ email: email }
+            if (email) {
+                query = { email: email }
             }
             const result = await usersCollection.find(query).toArray();
             res.send(result)
@@ -108,11 +110,38 @@ async function run() {
             res.send(result)
         })
 
+        app.put("/myProductAccepted", async (req, res) => {
+            const id = req.query.id
+            const query = {_id: new ObjectId(id)}
+           
+            const updatedData = {
+                $set: {
+                    status: "Accepted"
+                }
+            }
+            const result = await myCollection.updateOne(query, updatedData)
+            res.send(result)
+        });
+
+        app.put("/myProductRejected", async (req, res) => {
+            const id = req.query.id
+            const query = {_id: new ObjectId(id)}
+           
+            const updatedData = {
+                $set: {
+                    status: "Rejected"
+                }
+            }
+            const result = await myCollection.updateOne(query, updatedData)
+            res.send(result)
+        });
+       
+
         app.get("/myProduct", async (req, res) => {
             const email = req.query.email
             let query = {}
-            if(email){
-                query={ email: email }
+            if (email) {
+                query = { email: email }
             }
             const result = await myCollection.find(query).toArray();
             res.send(result)
@@ -120,34 +149,44 @@ async function run() {
 
         app.get("/myProduct/:id", async (req, res) => {
             const id = req.params.id
-            const query = {_id: new ObjectId(id)}
+            let query = {}
+            if (id) {
+                query = { _id: new ObjectId(id) }
+            }
             const result = await myCollection.findOne(query)
             res.send(result)
         });
 
-        app.put("/myProduct/:id", async (req, res) =>{
+        app.put("/myProduct/:id", async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const options = { upsert: true };
             const data = req.body;
             const UpdateResult = {
-              $set:{
-                product_name:data?.product_name,
-                image:data?.image,
-                tag:data?.tag,
-                upvote:data?.upvote,
-                product_description:data?.product_description,
-              }
+                $set: {
+                    product_name: data?.product_name,
+                    image: data?.image,
+                    tag: data?.tag,
+                    upvote: data?.upvote,
+                    product_description: data?.product_description,
+                }
             }
-            const result = await myCollection.updateOne(filter,UpdateResult,options)
+            const result = await myCollection.updateOne(filter, UpdateResult, options)
             res.send(result);
         });
+
+        app.delete("/myProduct/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await myCollection.deleteOne(query)
+            res.send(result);
+        })
 
         app.get("/allProduct", async (req, res) => {
             const page = parseInt(req.query.page)
             const size = parseInt(req.query.size)
             const tag = req.query.tag;
-            const query = {tag:{$regex: tag , $options:"i"}}; 
+            const query = { tag: { $regex: tag, $options: "i" } };
             const result = await allCollection.find(query).skip(page * size).limit(size).toArray();
             res.send(result)
         })
