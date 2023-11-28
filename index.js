@@ -196,6 +196,16 @@ async function run() {
             res.send({ count });
         });
 
+        app.get("/reviewCount", async (req, res) => {
+            const ReviewCount = await reviewCollection.estimatedDocumentCount();
+            res.send({ ReviewCount });
+        });
+
+        app.get("/usersCount", async (req, res) => {
+            const UserCount = await usersCollection.estimatedDocumentCount();
+            res.send({ UserCount });
+        });
+
         app.get("/AllProduct/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -234,6 +244,33 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret
             })
+        });
+
+
+        app.put("/usersAdmin", async (req, res) => {
+            const id = req?.query?.id
+            const query = {_id: new ObjectId(id)}
+            const options = { upsert: true };
+            const updatedData = {
+                $set: {
+                    role: "admin"
+                }
+            }
+            const result = await usersCollection.updateOne(query, updatedData,options)
+            res.send(result)
+        });
+
+        app.put("/usersModerator", async (req, res) => {
+            const id = req?.query?.id
+            const query = {_id: new ObjectId(id)}
+            const options = { upsert: true };
+            const updatedData = {
+                $set: {
+                    role: "moderator"
+                }
+            }
+            const result = await usersCollection.updateOne(query, updatedData,options)
+            res.send(result)
         });
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
