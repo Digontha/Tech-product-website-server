@@ -40,6 +40,7 @@ async function run() {
         const trandingCollection = client.db("techDB").collection("trandingProducts");
         const usersCollection = client.db("techDB").collection("usersProducts");
         const allCollection = client.db("techDB").collection("AllProducts");
+        const myCollection = client.db("techDB").collection("myProducts");
         const reviewCollection = client.db("techDB").collection("review");
 
         app.get("/featuredProduct", async (req, res) => {
@@ -92,9 +93,9 @@ async function run() {
             res.send(result)
         });
 
-        app.post("/allProduct", async (req, res) => {
+        app.post("/myProduct", async (req, res) => {
             const data = req.body
-            const result = await allCollection.insertOne(data)
+            const result = await myCollection.insertOne(data)
             res.send(result)
         })
 
